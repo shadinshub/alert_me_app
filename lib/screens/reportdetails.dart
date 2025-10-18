@@ -1,83 +1,33 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-import 'package:alert_me_app/screens/profile.dart';
-import 'package:alert_me_app/screens/alerts.dart';
-import 'package:alert_me_app/screens/myreports.dart';
+class ReportDetails extends StatelessWidget {
+  const ReportDetails({super.key});
 
-/// =================== الهيكل العام مع القائمة السفلية ===================
-class Home extends StatefulWidget {
-  const Home({super.key});
-  @override
-  State<Home> createState() => _HomeState();
-}
+  // الصورة من مجلد المشروع
+  static const String assetImagePath = 'assets/images/s1.webp';
 
-class _HomeState extends State<Home> {
-  int _selectedIndex = 0;
-
-  void _onItemTapped(int index) {
-    setState(() => _selectedIndex = index);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // نبني الصفحات داخل build لتفادي ثبات الـ const
-    final pages = <Widget>[
-      HomePage(),          // الصفحة الرئيسية (بدون const)
-      const Alerts(),
-      const Myreports(),
-      const Profile(),
-    ];
-
-    return Scaffold(
-      backgroundColor: const Color.fromRGBO(252, 237, 240, 1),
-      body: pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: const Color.fromRGBO(252, 237, 240, 1),
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.pink,
-        unselectedItemColor: Colors.grey,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications), label: 'Alerts'),
-          BottomNavigationBarItem(icon: Icon(Icons.insert_drive_file), label: 'MyReports'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
-      ),
-    );
-  }
-}
-
-/// =================== الصفحة الرئيسية (واجهة البلاغ) ===================
-class HomePage extends StatelessWidget {
-  HomePage({super.key});
-
-  // الصورة من أصول المشروع
-  static const String assetImagePath = 'assets/images/s1.png';
-
-  // للاختبار على محاكي/ويندوز فقط (غير مدعوم على الهاتف الحقيقي)
+  // للمحاكي فقط (لا يُستخدم على الهاتف)
   static const String windowsFilePath =
-      r'C:\Users\reema\OneDrive\Desktop\s1.png';
-
-  final Color _bg = const Color(0xFFF7E8EB);      // خلفية وردية فاتحة
-  final Color _chipBg = const Color(0xFFF3E3E6);  // لون الشيب
-  final Color _primary = const Color(0xFF0197A5); // لون زر "تواصل"
-  final Color _textColor = const Color(0xFF3C2E35);
+      r'C:\Users\reema\OneDrive\Desktop\s1.webp';
 
   @override
   Widget build(BuildContext context) {
+    final bg = const Color(0xFFF7E8EB); // وردي فاتح
+    final cardBg = Colors.white;
+    final chipBg = const Color(0xFFF3E3E6);
+    final primary = const Color(0xFF0197A5); // لون الزر الأزرق الفاتح
+    final textColor = const Color(0xFF3C2E35);
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: _bg,
+        backgroundColor: bg,
         body: SafeArea(
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
             children: [
-              // شريط علوي بسيط (اختياري)
+              // زر الرجوع
               Row(
                 children: [
                   IconButton(
@@ -98,10 +48,10 @@ class HomePage extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // البطاقة البيضاء
+              // البطاقة
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cardBg,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
@@ -121,7 +71,7 @@ class HomePage extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
-                          color: _textColor,
+                          color: textColor,
                         ),
                       ),
                     ),
@@ -131,7 +81,7 @@ class HomePage extends StatelessWidget {
                     _InfoRow(
                       label: 'وصف البلاغ:',
                       value: 'ضيعت سماعة زرقاء في الساحة',
-                      valueStyle: TextStyle(color: _textColor),
+                      valueStyle: TextStyle(color: textColor),
                     ),
                     const SizedBox(height: 8),
 
@@ -141,13 +91,11 @@ class HomePage extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: _chipBg,
+                          color: chipBg,
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Text(
-                          'مفقودة',
-                          style: TextStyle(fontWeight: FontWeight.w600),
-                        ),
+                        child: const Text('مفقودة',
+                            style: TextStyle(fontWeight: FontWeight.w600)),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -181,33 +129,11 @@ class HomePage extends StatelessWidget {
                 children: [
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: () async {
-                        // فتح تطبيق البريد مع العنوان جاهز
-                        final Uri emailUri = Uri(
-                          scheme: 'mailto',
-                          path: '44592629@student.ksu.edu.sa',
-                          queryParameters: {
-                            'subject': 'بخصوص البلاغ (سماعات ايربودز ماكس)',
-                            // 'body': 'السلام عليكم ...' // تقدرين تضيفين نص جاهز هنا
-                          },
-                        );
-                        try {
-                          if (await canLaunchUrl(emailUri)) {
-                            await launchUrl(emailUri);
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('تعذر فتح تطبيق البريد')),
-                            );
-                          }
-                        } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('حدث خطأ: $e')),
-                          );
-                        }
+                      onPressed: () {
+                        // TODO: اضيفي التفاعل المطلوب للتواصل
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _primary,
+                        backgroundColor: primary,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -240,7 +166,7 @@ class HomePage extends StatelessWidget {
                     child: IconButton(
                       onPressed: () {},
                       icon: const Icon(Icons.person_rounded),
-                      color: _primary,
+                      color: primary,
                     ),
                   ),
                 ],
@@ -264,17 +190,17 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  /// تحميل الصورة (من الأصول كخيار افتراضي)
   Widget _buildImage() {
-    const bool loadFromWindowsFile = false; // غيّريها لـ true لو بتجربين على المحاكي
+    const bool loadFromWindowsFile = false; // غيريها إلى true للتجربة
+
     if (loadFromWindowsFile && File(windowsFilePath).existsSync()) {
       return Image.file(File(windowsFilePath), fit: BoxFit.cover);
     }
+
     return Image.asset(assetImagePath, fit: BoxFit.cover);
   }
 }
 
-/// صف سطر (عنوان:قيمة) قابل لإظهار ويدجت مخصّصة
 class _InfoRow extends StatelessWidget {
   final String label;
   final String? value;
@@ -282,7 +208,6 @@ class _InfoRow extends StatelessWidget {
   final TextStyle? valueStyle;
 
   const _InfoRow({
-    super.key,
     required this.label,
     this.value,
     this.valueWidget,
